@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Cofre Mágico</title>
+<title>Magic Chest</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -176,7 +176,21 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
   display:flex;align-items:center;justify-content:center;
   background:linear-gradient(180deg,rgba(20,4,0,.97) 0%,transparent 100%);
   min-height:clamp(58px,14vw,88px);
+  position:relative;
 }
+#muteBtn{
+  position:absolute;right:16px;top:50%;transform:translateY(-50%);
+  background:rgba(255,180,0,.10);
+  border:1px solid rgba(200,150,30,.30);
+  border-radius:8px;
+  width:clamp(34px,8vw,44px);height:clamp(34px,8vw,44px);
+  font-size:clamp(16px,4vw,22px);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s;
+  color:#fff;
+}
+#muteBtn:active{background:rgba(255,180,0,.25);}
 #logoSlot{display:flex;align-items:center;gap:11px;}
 .logo-icon{width:clamp(34px,8vw,54px);height:clamp(34px,8vw,54px);background:var(--submitBtn);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:clamp(18px,4.5vw,30px);box-shadow:0 0 22px rgba(255,180,0,.45);flex-shrink:0;}
 .logo-text{font-size:clamp(.9rem,4vw,1.7rem);letter-spacing:3px;text-transform:uppercase;background:var(--submitBtn);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 10px rgba(255,180,0,.5));}
@@ -260,10 +274,41 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
 
 .cBurst{position:fixed;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle,#FFF0A0,#C87000);pointer-events:none;animation:cFly var(--dur) ease-out forwards;box-shadow:0 0 6px #C87000;z-index:60;}
 @keyframes cFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(.3);opacity:0}}
+
+/* ── MUTE BUTTON ── */
+#muteBtn{
+  position:fixed;top:14px;right:16px;z-index:300;
+  width:38px;height:38px;border-radius:50%;
+  border:1.5px solid rgba(200,150,30,.35);
+  background:rgba(20,6,0,.72);
+  backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  font-size:18px;
+  box-shadow:0 2px 12px rgba(0,0,0,.4);
+  transition:background .2s,border-color .2s;
+  user-select:none;
+}
+#muteBtn:hover{background:rgba(40,14,0,.9);border-color:rgba(255,180,0,.55);}
+#muteBtn.muted{opacity:.55;}
 </style>
 </head>
 <body>
 <div id="bgLayer"></div>
+
+<!-- ══════════════════════════════════════
+     AUDIO
+     ★ Colocá estos 3 archivos en la misma carpeta que index.html:
+       audio-bg.mp3     → música de fondo (loop)
+       audio-shake.mp3  → sonido al sacudir el cofre
+       audio-reward.mp3 → sonido al mostrar el premio
+══════════════════════════════════════ -->
+<audio id="audioBg"     src="audio-bg.mp3"     loop preload="auto"></audio>
+<audio id="audioShake"  src="audio-shake.mp3"  preload="auto"></audio>
+<audio id="audioReward" src="audio-reward.mp3" preload="auto"></audio>
+
+<!-- Botón mute (visible siempre) -->
+<button id="muteBtn" title="Silenciar / Activar sonido">🔊</button>
 
 <!-- LOADING -->
 <div id="loading">
@@ -311,13 +356,14 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
     <div id="logoSlot">
       <img src="logo-header.png" alt="Logo" style="height:clamp(36px,9vw,58px)">
     </div>
+    <button id="muteBtn" title="Silenciar / Activar sonido">🔊</button>
   </header>
   <div id="canvasWrap">
     <div id="glowRing"></div>
     <canvas id="renderCanvas"></canvas>
   </div>
   <div id="bottomBar">
-    <div id="hintText">⛃ Tocá el cofre para abrirlo ⛃</div>
+    <div id="hintText">✦ Tocá el cofre para abrirlo ✦</div>
     <button id="openBtn">Abrir Cofre</button>
   </div>
 </div>
@@ -325,7 +371,7 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
 <!-- REWARD OVERLAY -->
 <div id="rwOverlay">
   <div id="rwCard">
-    <div class="rw-congrats">¡Felicitaciones!</div>
+    <div class="rw-congrats">🎉 ¡Felicitaciones!</div>
     <div class="rw-username" id="rwUsername">—</div>
     <div id="rwTag">Recibiste</div>
     <div id="coinRow">
@@ -349,6 +395,61 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
 
 <script>
 'use strict';
+
+/* ════════════════════════════════════════════════════
+   AUDIO SYSTEM
+   ★ Archivos necesarios (carpeta sounds/ junto a index.html):
+     sounds/bg-music.mp3    — música de fondo (loop)
+     sounds/chest-shake.mp3 — sonido al sacudir el cofre
+     sounds/reward.mp3      — fanfare al mostrar el premio
+════════════════════════════════════════════════════ */
+let audioMuted = false;
+const SFX = { bg:null, shake:null, reward:null };
+
+function audioSetup(){
+  // Crear objetos Audio
+  SFX.bg     = new Audio('sounds/bg-music.mp3');
+  SFX.bg.loop   = true;
+  SFX.bg.volume = 0.30;
+
+  SFX.shake  = new Audio('sounds/chest-shake.mp3');
+  SFX.shake.volume = 0.85;
+
+  SFX.reward = new Audio('sounds/reward.mp3');
+  SFX.reward.volume = 0.90;
+
+  // Restaurar preferencia de mute
+  try{
+    if(localStorage.getItem('chest_muted')==='1') audioMuted=true;
+  }catch(e){}
+  $('muteBtn').textContent = audioMuted ? '🔇' : '🔊';
+
+  // Mute button click
+  $('muteBtn').addEventListener('click', ()=>{
+    audioMuted = !audioMuted;
+    Object.values(SFX).forEach(a=>{ if(a) a.muted=audioMuted; });
+    $('muteBtn').textContent = audioMuted ? '🔇' : '🔊';
+    try{ localStorage.setItem('chest_muted', audioMuted?'1':'0'); }catch(e){}
+  });
+
+  // Iniciar bg en primera interacción (política autoplay de browsers)
+  const startBg = ()=>{
+    if(!audioMuted) SFX.bg.play().catch(()=>{});
+    document.removeEventListener('pointerdown', startBg);
+    document.removeEventListener('keydown',     startBg);
+  };
+  document.addEventListener('pointerdown', startBg);
+  document.addEventListener('keydown',     startBg);
+}
+
+function playSfx(key){
+  if(audioMuted) return;
+  const a = SFX[key];
+  if(!a) return;
+  a.currentTime = 0;
+  a.play().catch(()=>{});
+}
+
 
 /* ════════════════════════════════════════════════════
    ★★★ CONFIGURACIÓN SUPABASE ★★★
@@ -779,6 +880,9 @@ function startOpen(){
   state='shake'; stateT=0;
   $('openBtn').disabled=true;
   $('hintText').style.opacity='0';
+  // Asegurar que el bg esté corriendo
+  if(SFX.bg && SFX.bg.paused && !audioMuted) SFX.bg.play().catch(()=>{});
+  playSfx('shake');
 }
 
 async function onDone(){
@@ -786,11 +890,14 @@ async function onDone(){
   const coins=pickPrize();
 
   $('savingOverlay').classList.add('show');
-  // Save to Supabase
   await savePlay(currentUsername, visitorId, coins);
-  // Save to localStorage (backup para Brave y anti-fingerprint browsers)
   lsSavePlay(currentUsername, coins);
   $('savingOverlay').classList.remove('show');
+
+  // Reward fanfare — bajar bg para que se escuche bien
+  if(SFX.bg && !audioMuted) SFX.bg.volume = 0.10;
+  playSfx('reward');
+  setTimeout(()=>{ if(SFX.bg && !audioMuted) SFX.bg.volume = 0.30; }, 3500);
 
   burst();
   coinPS.start(); coinPS.manualEmitCount=180;
@@ -841,6 +948,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     createScene();
     engine.runRenderLoop(()=>{ if(scene) scene.render(); });
     window.addEventListener('resize',()=>engine.resize());
+    audioSetup();
     return; // no seguimos con el flujo normal
   }
 
@@ -884,6 +992,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   engine.runRenderLoop(()=>{ if(scene) scene.render(); });
   window.addEventListener('resize',()=>engine.resize());
   $('openBtn').addEventListener('click',()=>{ if(state==='idle') startOpen(); });
+  audioSetup();
 });
 </script>
 </body>
