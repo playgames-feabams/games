@@ -6,9 +6,6 @@
 <title>Magic Chest</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
 <style>
-/* ════════════════════════════════════════
-   VARIABLES & RESET
-════════════════════════════════════════ */
 :root{
   --baseBg:#1a0a04;
   --gold1:#FFC900; --gold2:#E8C060; --goldDark:#C8961E; --goldAcc:#D4A840;
@@ -20,11 +17,9 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-family:var(--font);color:#fff;}
 
-/* ════════════════════════════════════════
-   BACKGROUND
-   ★ Para usar tu propia imagen:
-     background: url('fondo.jpg') center/cover no-repeat;
-════════════════════════════════════════ */
+/* ── BACKGROUND ──
+   ★ Para tu propia imagen: background: url('fondo.jpg') center/cover no-repeat;
+*/
 #bgLayer{
   position:fixed;inset:0;z-index:0;
   background:radial-gradient(ellipse 90% 55% at 50% 30%,#3d1505 0%,#1a0804 50%,#080301 100%);
@@ -42,9 +37,7 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
 #bgLayer::after{background-size:240px 190px,80px 80px;animation-duration:150s;animation-direction:reverse;opacity:.14;}
 @keyframes sDrift{to{background-position:170px 170px,220px 170px;}}
 
-/* ════════════════════════════════════════
-   LOADING
-════════════════════════════════════════ */
+/* ── LOADING ── */
 #loading{
   position:fixed;inset:0;z-index:200;
   background:var(--baseBg);
@@ -57,21 +50,15 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
 #loadFill{height:100%;width:0%;background:var(--submitBtn);border-radius:2px;transition:width .28s ease;box-shadow:0 0 10px var(--gold1);}
 #loadMsg{font-size:.82rem;letter-spacing:4px;text-transform:uppercase;color:var(--goldAcc);}
 
-/* ════════════════════════════════════════
-   PANTALLA: INGRESAR USUARIO
-════════════════════════════════════════ */
+/* ── PANTALLA: INGRESÁ TU USUARIO ──
+   FIX: sin logo duplicado — el logo del header del juego ya está visible detrás
+*/
 #screenUser{
   position:fixed;inset:0;z-index:110;
   display:none;flex-direction:column;align-items:center;justify-content:center;
-  gap:0;
   padding:24px;
 }
 #screenUser.show{display:flex;}
-
-.screen-logo{
-  margin-bottom:clamp(20px,5vh,40px);
-  display:flex;align-items:center;justify-content:center;
-}
 
 .su-card{
   width:min(96%,400px);
@@ -97,10 +84,8 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
   font-size:clamp(.72rem,2.8vw,.88rem);
   letter-spacing:2px;text-transform:uppercase;
   color:rgba(212,168,64,.65);
-  text-align:center;
-  line-height:1.5;
+  text-align:center;line-height:1.5;
 }
-
 #usernameInput{
   width:100%;
   background:rgba(255,180,0,.07);
@@ -109,27 +94,18 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
   padding:14px 18px;
   font-family:var(--font);
   font-size:clamp(1rem,4vw,1.2rem);
-  letter-spacing:2px;
-  color:#fff;
-  outline:none;
-  text-align:center;
-  text-transform:uppercase;
+  letter-spacing:2px;color:#fff;
+  outline:none;text-align:center;text-transform:uppercase;
   transition:border-color .2s,box-shadow .2s;
 }
 #usernameInput::placeholder{color:rgba(212,168,64,.35);letter-spacing:2px;}
-#usernameInput:focus{
-  border-color:rgba(255,201,0,.7);
-  box-shadow:0 0 18px rgba(255,180,0,.2);
-}
+#usernameInput:focus{border-color:rgba(255,201,0,.7);box-shadow:0 0 18px rgba(255,180,0,.2);}
 
 #suError{
   font-size:clamp(.72rem,2.8vw,.85rem);
   letter-spacing:2px;text-transform:uppercase;
-  color:#ff6b6b;
-  text-align:center;
-  min-height:1.2em;
-  opacity:0;
-  transition:opacity .25s;
+  color:#ff6b6b;text-align:center;
+  min-height:1.2em;opacity:0;transition:opacity .25s;
 }
 #suError.show{opacity:1;}
 
@@ -157,9 +133,7 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
 .su-spinner.show{display:block;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ════════════════════════════════════════
-   PANTALLA: YA PARTICIPASTE
-════════════════════════════════════════ */
+/* ── PANTALLA: YA PARTICIPASTE ── */
 #screenBlocked{
   position:fixed;inset:0;z-index:110;
   display:none;flex-direction:column;align-items:center;justify-content:center;
@@ -177,64 +151,21 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
   box-shadow:0 0 60px rgba(139,0,0,.3),0 0 0 1px rgba(255,180,0,.05);
   animation:cardPop .5s cubic-bezier(.34,1.56,.64,1);
 }
-
 .sb-icon{font-size:clamp(2.5rem,10vw,4rem);filter:drop-shadow(0 0 16px rgba(255,180,0,.6));}
-
-.sb-title{
-  font-size:clamp(1.1rem,5vw,1.6rem);
-  letter-spacing:3px;text-transform:uppercase;
-  color:var(--gold1);
-  filter:drop-shadow(0 0 10px rgba(255,180,0,.4));
-  text-align:center;
-}
-.sb-name{
-  font-size:clamp(1.3rem,6vw,2rem);
-  letter-spacing:2px;text-transform:uppercase;
-  background:var(--submitBtn);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 0 10px rgba(255,180,0,.5));
-  text-align:center;
-}
-.sb-sub{
-  font-size:clamp(.72rem,2.8vw,.88rem);
-  letter-spacing:3px;text-transform:uppercase;
-  color:rgba(212,168,64,.6);
-  text-align:center;line-height:1.6;
-}
-.sb-prev-prize{
-  display:flex;flex-direction:column;align-items:center;gap:8px;
-  background:rgba(255,180,0,.06);
-  border:1px solid rgba(200,150,30,.2);
-  border-radius:12px;
-  padding:16px 28px;
-  width:100%;
-}
-.sb-prev-label{
-  font-size:clamp(.65rem,2.4vw,.78rem);
-  letter-spacing:4px;text-transform:uppercase;
-  color:rgba(212,168,64,.55);
-}
-.sb-prev-coins{
-  font-size:clamp(2rem,9vw,3.2rem);
-  font-family:'Nunito',sans-serif;font-weight:900;
-  background:linear-gradient(180deg,#FFF5B0 0%,#FFD700 45%,#C87000 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 0 14px rgba(255,160,0,.7));
-}
+.sb-title{font-size:clamp(1.1rem,5vw,1.6rem);letter-spacing:3px;text-transform:uppercase;color:var(--gold1);filter:drop-shadow(0 0 10px rgba(255,180,0,.4));text-align:center;}
+.sb-name{font-size:clamp(1.3rem,6vw,2rem);letter-spacing:2px;text-transform:uppercase;background:var(--submitBtn);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 10px rgba(255,180,0,.5));text-align:center;}
+.sb-sub{font-size:clamp(.72rem,2.8vw,.88rem);letter-spacing:3px;text-transform:uppercase;color:rgba(212,168,64,.6);text-align:center;line-height:1.6;}
+.sb-prev-prize{display:flex;flex-direction:column;align-items:center;gap:8px;background:rgba(255,180,0,.06);border:1px solid rgba(200,150,30,.2);border-radius:12px;padding:16px 28px;width:100%;}
+.sb-prev-label{font-size:clamp(.65rem,2.4vw,.78rem);letter-spacing:4px;text-transform:uppercase;color:rgba(212,168,64,.55);}
+.sb-prev-coins{font-size:clamp(2rem,9vw,3.2rem);font-family:'Nunito',sans-serif;font-weight:900;background:linear-gradient(180deg,#FFF5B0 0%,#FFD700 45%,#C87000 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 14px rgba(255,160,0,.7));}
 .sb-divider{width:80%;height:1px;background:linear-gradient(90deg,transparent,rgba(200,150,30,.3),transparent);}
 
-/* ════════════════════════════════════════
-   GAME APP
-════════════════════════════════════════ */
+/* ── GAME APP ── */
 #app{
   position:relative;z-index:1;
   width:100%;height:100%;
   display:flex;flex-direction:column;align-items:center;
 }
-
-/* LOGO HEADER
-   ★ reemplazá el contenido de #logoSlot con: <img src="logo-header.png" style="height:clamp(36px,9vw,58px)">
-*/
 #logoHeader{
   width:100%;flex-shrink:0;padding:14px 20px 10px;
   display:flex;align-items:center;justify-content:center;
@@ -257,16 +188,28 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
 #openBtn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(80,30,0,.9),inset 0 0 14px rgba(255,255,255,.2);}
 #openBtn:disabled{opacity:.45;pointer-events:none;}
 
-/* ════════════════════════════════════════
-   REWARD OVERLAY
-════════════════════════════════════════ */
+/* ── REWARD OVERLAY
+   FIX PC: usa position fixed + flex centrado explícito en todos los ejes
+   El problema anterior era que el overlay heredaba altura del flujo del documento en desktop
+*/
 #rwOverlay{
-  position:fixed;inset:0;z-index:50;
-  display:none;align-items:center;justify-content:center;
-  background:rgba(10,3,0,.85);backdrop-filter:blur(10px);
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;   /* explícito, no shorthand inset */
+  z-index:150;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background:rgba(10,3,0,.88);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
   padding:24px;
+  /* Forzar que el overlay no quede "aplastado" por el flex padre */
+  min-height:100vh;
+  min-height:100dvh;
 }
 #rwOverlay.show{display:flex;}
+
 #rwCard{
   width:min(96%,440px);
   background:linear-gradient(168deg,#1a0700 0%,#2e0f00 55%,#100500 100%);
@@ -276,72 +219,40 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
   display:flex;flex-direction:column;align-items:center;gap:16px;
   box-shadow:0 0 0 1px rgba(255,180,0,.06),0 32px 80px rgba(0,0,0,.8),0 0 50px rgba(139,0,0,.28);
   animation:cUp .6s cubic-bezier(.34,1.56,.64,1);
+  /* Evitar que en PC se estire */
+  flex-shrink:0;
 }
 @keyframes cUp{from{opacity:0;transform:scale(.85) translateY(40px)}to{opacity:1;transform:none}}
 
-.rw-congrats{
-  font-size:clamp(.75rem,3vw,.95rem);
-  letter-spacing:4px;text-transform:uppercase;
-  color:var(--gold1);
-  filter:drop-shadow(0 0 8px rgba(255,180,0,.5));
-  text-align:center;
-  animation:pulse 1.4s ease-in-out infinite;
-}
+.rw-congrats{font-size:clamp(.75rem,3vw,.95rem);letter-spacing:4px;text-transform:uppercase;color:var(--gold1);filter:drop-shadow(0 0 8px rgba(255,180,0,.5));text-align:center;animation:pulse 1.4s ease-in-out infinite;}
 @keyframes pulse{0%,100%{filter:drop-shadow(0 0 8px rgba(255,180,0,.5))}50%{filter:drop-shadow(0 0 20px rgba(255,180,0,.9))}}
-
-.rw-username{
-  font-size:clamp(1.4rem,6vw,2.2rem);
-  letter-spacing:2px;text-transform:uppercase;
-  background:var(--submitBtn);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 0 12px rgba(255,180,0,.55));
-  text-align:center;line-height:1.1;
-}
-
-#rwTag{
-  font-size:clamp(.7rem,2.5vw,.84rem);
-  letter-spacing:5px;text-transform:uppercase;
-  color:rgba(212,168,64,.65);
-}
-
+.rw-username{font-size:clamp(1.4rem,6vw,2.2rem);letter-spacing:2px;text-transform:uppercase;background:var(--submitBtn);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 12px rgba(255,180,0,.55));text-align:center;line-height:1.1;}
+#rwTag{font-size:clamp(.7rem,2.5vw,.84rem);letter-spacing:5px;text-transform:uppercase;color:rgba(212,168,64,.65);}
 #coinRow{display:flex;align-items:center;gap:16px;}
 #coinIcon{
   width:clamp(56px,14vw,80px);height:clamp(56px,14vw,80px);
   border-radius:50%;
   background:radial-gradient(circle at 38% 36%,#fff8c0 0%,#FFD700 30%,#C87A00 70%,#8a5000 100%);
   box-shadow:0 0 0 3px #b87800,0 0 0 6px #FFD700,0 0 28px rgba(255,180,0,.85),inset 0 2px 6px rgba(255,255,220,.5),inset 0 -3px 8px rgba(80,30,0,.4);
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
   animation:sc 1.5s ease-out;
 }
 #coinIcon::before{content:'$';font-family:"Fredoka One",cursive;font-size:clamp(26px,7vw,40px);color:#1a0800;text-shadow:0 1px 0 rgba(255,220,80,.6),0 -1px 2px rgba(80,30,0,.6);}
 @keyframes sc{0%{transform:rotateY(0) scale(.4);opacity:0}40%{transform:rotateY(720deg) scale(1.25);opacity:1}100%{transform:rotateY(720deg) scale(1)}}
-
 #coinAmt{font-size:clamp(2.8rem,12vw,5.5rem);line-height:1;background:linear-gradient(180deg,#FFF5B0 0%,#FFD700 45%,#C87000 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 22px rgba(255,160,0,.75));font-family:'Nunito',sans-serif;font-weight:900;}
-
 .rw-divider{width:80%;height:1px;background:linear-gradient(90deg,transparent,rgba(200,150,30,.35),transparent);}
+.rw-footer{font-size:clamp(.68rem,2.5vw,.82rem);letter-spacing:3px;text-transform:uppercase;color:rgba(212,168,64,.45);text-align:center;line-height:1.6;}
 
-.rw-footer{
-  font-size:clamp(.68rem,2.5vw,.82rem);
-  letter-spacing:3px;text-transform:uppercase;
-  color:rgba(212,168,64,.45);
-  text-align:center;line-height:1.6;
-}
-
-/* ════════════════════════════════════════
-   SAVING OVERLAY (spinner while saving)
-════════════════════════════════════════ */
+/* ── SAVING OVERLAY ── */
 #savingOverlay{
   position:fixed;inset:0;z-index:180;
   background:rgba(10,3,0,.7);backdrop-filter:blur(6px);
-  display:none;align-items:center;justify-content:center;gap:16px;
-  flex-direction:column;
+  display:none;align-items:center;justify-content:center;gap:16px;flex-direction:column;
 }
 #savingOverlay.show{display:flex;}
 #savingOverlay .su-spinner{display:block;width:40px;height:40px;border-width:4px;}
 #savingOverlay p{font-size:.82rem;letter-spacing:4px;text-transform:uppercase;color:var(--goldAcc);}
 
-/* coin burst */
 .cBurst{position:fixed;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle,#FFF0A0,#C87000);pointer-events:none;animation:cFly var(--dur) ease-out forwards;box-shadow:0 0 6px #C87000;z-index:60;}
 @keyframes cFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(.3);opacity:0}}
 </style>
@@ -349,26 +260,20 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
 <body>
 <div id="bgLayer"></div>
 
-<!-- ══════════════════════════════════════
-     LOADING
-══════════════════════════════════════ -->
+<!-- LOADING -->
 <div id="loading">
   <div id="loadLogoSlot">
-    <!-- ★ logo-loading.png ★ -->
     <img src="logo-loading.png" alt="Logo" style="height:clamp(48px,12vw,80px)">
   </div>
   <div id="loadBar"><div id="loadFill"></div></div>
   <div id="loadMsg">Cargando...</div>
 </div>
 
-<!-- ══════════════════════════════════════
-     PANTALLA: INGRESÁ TU USUARIO
-══════════════════════════════════════ -->
+<!-- PANTALLA: INGRESÁ TU USUARIO
+     FIX: eliminado el bloque .screen-logo que duplicaba el logo
+     El logo del header (#logoHeader) ya es visible detrás de esta pantalla
+-->
 <div id="screenUser">
-  <div class="screen-logo">
-    <!-- ★ logo-header.png ★ -->
-    <img src="logo-header.png" alt="Logo" style="height:clamp(40px,10vw,66px)">
-  </div>
   <div class="su-card">
     <div class="su-title">¡Abrí tu cofre!</div>
     <div class="su-sub">Ingresá tu nombre de usuario<br>para reclamar tu premio</div>
@@ -380,9 +285,7 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     PANTALLA: YA PARTICIPASTE
-══════════════════════════════════════ -->
+<!-- PANTALLA: YA PARTICIPASTE -->
 <div id="screenBlocked">
   <div class="sb-card">
     <div class="sb-icon">🔒</div>
@@ -397,13 +300,10 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     JUEGO
-══════════════════════════════════════ -->
+<!-- JUEGO -->
 <div id="app">
   <header id="logoHeader">
     <div id="logoSlot">
-      <!-- ★ logo-header.png ★ -->
       <img src="logo-header.png" alt="Logo" style="height:clamp(36px,9vw,58px)">
     </div>
   </header>
@@ -412,17 +312,15 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
     <canvas id="renderCanvas"></canvas>
   </div>
   <div id="bottomBar">
-    <div id="hintText">⛃ Tocá el cofre para abrirlo ⛃</div>
+    <div id="hintText">✦ Tocá el cofre para abrirlo ✦</div>
     <button id="openBtn">Abrir Cofre</button>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     REWARD OVERLAY (una sola vez)
-══════════════════════════════════════ -->
+<!-- REWARD OVERLAY -->
 <div id="rwOverlay">
   <div id="rwCard">
-    <div class="rw-congrats">¡Felicitaciones!</div>
+    <div class="rw-congrats">🎉 ¡Felicitaciones!</div>
     <div class="rw-username" id="rwUsername">—</div>
     <div id="rwTag">Recibiste</div>
     <div id="coinRow">
@@ -440,14 +338,8 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
   <p>Guardando premio...</p>
 </div>
 
-<!-- ══════════════════════════════════════
-     SCRIPTS
-══════════════════════════════════════ -->
-<!-- FingerprintJS -->
 <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
-<!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<!-- Babylon.js -->
 <script src="https://cdn.babylonjs.com/babylon.js"></script>
 
 <script>
@@ -455,27 +347,34 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
 
 /* ════════════════════════════════════════════════════
    ★★★ CONFIGURACIÓN SUPABASE ★★★
-   1. Creá una cuenta gratis en https://supabase.com
-   2. Creá un nuevo proyecto
-   3. Ejecutá este SQL en el editor de Supabase:
-
-      create table jugadas (
-        id          uuid default gen_random_uuid() primary key,
-        username    text not null,
-        fingerprint text not null,
-        premio      integer not null,
-        created_at  timestamptz default now()
-      );
-      alter table jugadas enable row level security;
-      create policy "insert libre" on jugadas for insert with check (true);
-      create policy "select libre" on jugadas for select using (true);
-
-   4. En Settings → API, copiá la URL y la clave "anon public"
-   5. Reemplazá los valores de abajo
 ════════════════════════════════════════════════════ */
-const SUPABASE_URL = 'https://seegvnuplmkkaznzywur.supabase.co';   // ← tu URL
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZWd2bnVwbG1ra2F6bnp5d3VyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MjMzMjMsImV4cCI6MjA4OTE5OTMyM30.cQoOUof3cDQqnXc84WyjD6gdjEW47LmUOnmLFZVHEKg';    // ← tu anon key
-const TABLE        = 'jugadas';
+const SUPABASE_URL = 'https://seegvnuplmkkaznzywur.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZWd2bnVwbG1ra2F6bnp5d3VyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MjMzMjMsImV4cCI6MjA4OTE5OTMyM30.cQoOUof3cDQqnXc84WyjD6gdjEW47LmUOnmLFZVHEKg';
+const TABLE = 'jugadas';
+
+/* ════════════════════════════════════════════════════
+   LOCAL STORAGE KEY  (backup para Brave y browsers anti-fingerprint)
+   FIX: guardamos la jugada en localStorage al completar.
+   Al cargar, chequeamos localStorage ANTES de consultar Supabase.
+   Esto bloquea el reintento incluso si el fingerprint cambia entre sesiones.
+════════════════════════════════════════════════════ */
+const LS_KEY = 'chest_played_v1';
+
+function lsGetPlay(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e){ return null; }
+}
+function lsSavePlay(username, premio){
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      username: username.toUpperCase(),
+      premio,
+      ts: Date.now()
+    }));
+  } catch(e){ console.warn('localStorage not available'); }
+}
 
 /* ════════════════════════════════════════════════════
    PREMIOS FIJOS
@@ -517,25 +416,31 @@ const SHAKE=.80, OPEN=1.20;
    SUPABASE HELPERS
 ════════════════════════════════════════════════════ */
 async function checkByFingerprint(fp){
-  const {data,error} = await db
-    .from(TABLE).select('username,premio').eq('fingerprint',fp).maybeSingle();
-  if(error) console.warn('FP check error:',error);
-  return data;
+  try{
+    const {data,error} = await db
+      .from(TABLE).select('username,premio').eq('fingerprint',fp).maybeSingle();
+    if(error) console.warn('FP check error:',error);
+    return data;
+  }catch(e){ console.warn('FP check failed:',e); return null; }
 }
 async function checkByUsername(name){
-  const {data,error} = await db
-    .from(TABLE).select('username,premio').eq('username',name.toUpperCase()).maybeSingle();
-  if(error) console.warn('Username check error:',error);
-  return data;
+  try{
+    const {data,error} = await db
+      .from(TABLE).select('username,premio').eq('username',name.toUpperCase()).maybeSingle();
+    if(error) console.warn('Username check error:',error);
+    return data;
+  }catch(e){ console.warn('Username check failed:',e); return null; }
 }
 async function savePlay(username, fp, premio){
-  const {error} = await db.from(TABLE).insert([{
-    username: username.toUpperCase(),
-    fingerprint: fp,
-    premio
-  }]);
-  if(error) console.error('Save error:',error);
-  return !error;
+  try{
+    const {error} = await db.from(TABLE).insert([{
+      username: username.toUpperCase(),
+      fingerprint: fp,
+      premio
+    }]);
+    if(error) console.error('Save error:',error);
+    return !error;
+  }catch(e){ console.error('Save failed:',e); return false; }
 }
 
 /* ════════════════════════════════════════════════════
@@ -543,9 +448,8 @@ async function savePlay(username, fp, premio){
 ════════════════════════════════════════════════════ */
 function showUserScreen(){ $('screenUser').classList.add('show'); }
 function hideUserScreen(){ $('screenUser').classList.remove('show'); }
-function showGame()      { /* canvas always renders; just hide user screen */ hideUserScreen(); }
 function showBlocked(username, premio){
-  $('sbName').textContent = username;
+  $('sbName').textContent = username.toUpperCase();
   $('sbPrevCoins').textContent = fmt(premio) + ' fichas';
   $('screenBlocked').classList.add('show');
 }
@@ -564,23 +468,26 @@ function setLoading(on){
 }
 function setupUserScreen(){
   const inp=$('usernameInput');
-  inp && inp.addEventListener('keydown', e=>{
-    if(e.key==='Enter') $('btnJugar').click();
-  });
+  inp && inp.addEventListener('keydown', e=>{ if(e.key==='Enter') $('btnJugar').click(); });
   $('btnJugar').addEventListener('click', async()=>{
     const name = (inp.value||'').trim();
     if(name.length<2){ setError('Mínimo 2 caracteres'); return; }
     if(name.length>30){ setError('Máximo 30 caracteres'); return; }
     setError('');
     setLoading(true);
+
+    // 1. Check username in DB
     const existing = await checkByUsername(name);
     if(existing){ setLoading(false); setError('Este usuario ya participó'); return; }
+
+    // 2. Check fingerprint in DB
     const fpCheck = await checkByFingerprint(visitorId);
     if(fpCheck){ setLoading(false); hideUserScreen(); showBlocked(fpCheck.username, fpCheck.premio); return; }
+
     currentUsername = name;
     setLoading(false);
     hideUserScreen();
-    showGame();
+    // Game is already rendering; just hide the overlay
   });
 }
 
@@ -664,7 +571,6 @@ function buildChest(){
   const ring2=put(BABYLON.MeshBuilder.CreateTorus('ring2',{diameter:.64,thickness:.024,tessellation:28},scene),root,0,bY,bZ+.02);
   ring2.rotation.x=Math.PI/2; ring2.material=mGold;
 
-  // E letter
   put(B('eL',.088,.46,.088),root,+.095,bY,bZ+.092).material=mBolt;
   put(B('eT',.24,.086,.088),root,-.018,bY+.19,bZ+.092).material=mBolt;
   put(B('eM',.19,.076,.088),root,-.026,bY,bZ+.092).material=mBolt;
@@ -872,25 +778,23 @@ function startOpen(){
 
 async function onDone(){
   state='reward';
-
   const coins=pickPrize();
 
-  // Show saving overlay while we persist to Supabase
   $('savingOverlay').classList.add('show');
+  // Save to Supabase
   await savePlay(currentUsername, visitorId, coins);
+  // Save to localStorage (backup para Brave y anti-fingerprint browsers)
+  lsSavePlay(currentUsername, coins);
   $('savingOverlay').classList.remove('show');
 
-  // Coin burst + particles
   burst();
   coinPS.start(); coinPS.manualEmitCount=180;
   setTimeout(()=>{ try{coinPS.stop();}catch(e){} }, 300);
 
-  // Populate reward card
   $('rwUsername').textContent = currentUsername.toUpperCase();
   $('coinAmt').textContent = '0';
   $('rwOverlay').classList.add('show');
 
-  // Animated counter
   const dur=900, t0=performance.now();
   (function cnt(now){
     const t=clp((now-t0)/dur,0,1);
@@ -903,14 +807,10 @@ async function onDone(){
    INIT
 ════════════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', async ()=>{
-  // Init Supabase — rename to db to avoid conflict with CDN global
   db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  canvas = $('renderCanvas');
+  engine = new BABYLON.Engine(canvas, true, {antialias:true, adaptToDeviceRatio:true});
 
-  // Init canvas + engine (canvas is always in DOM and visible)
-  canvas  = $('renderCanvas');
-  engine  = new BABYLON.Engine(canvas, true, {antialias:true, adaptToDeviceRatio:true});
-
-  // Loading bar animation
   const fill=$('loadFill');
   const msgs=['Cargando...','Preparando cofre...','Casi listo...'];
   let p=0;
@@ -920,7 +820,26 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     $('loadMsg').textContent=msgs[Math.floor(p/33)%msgs.length];
   },220);
 
-  // Init FingerprintJS
+  // ── FIX BRAVE: chequeamos localStorage PRIMERO, antes de cualquier otra cosa
+  const lsPlay = lsGetPlay();
+  if(lsPlay){
+    // Usuario ya jugó en este device/browser — bloqueo inmediato sin esperar Supabase
+    clearInterval(iv);
+    fill.style.width='100%';
+    $('loadMsg').textContent='¡Listo!';
+    $('loading').classList.add('out');
+    setTimeout(()=>{
+      $('loading').style.display='none';
+      showBlocked(lsPlay.username, lsPlay.premio);
+    }, 900);
+    // Igual iniciamos el engine para que el cofre se vea de fondo
+    createScene();
+    engine.runRenderLoop(()=>{ if(scene) scene.render(); });
+    window.addEventListener('resize',()=>engine.resize());
+    return; // no seguimos con el flujo normal
+  }
+
+  // ── Fingerprint (para browsers normales)
   try {
     const fp=await FingerprintJS.load();
     const result=await fp.get();
@@ -930,28 +849,25 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     visitorId='fp_'+Date.now()+'_'+Math.random().toString(36).slice(2);
   }
 
-  // Create Babylon scene
   createScene();
 
-  // Once scene is ready: check Supabase, then show appropriate screen
   scene.executeWhenReady(async ()=>{
     clearInterval(iv); fill.style.width='100%';
     $('loadMsg').textContent='¡Listo!';
 
-    // Check fingerprint against DB
+    // Chequeamos fingerprint en Supabase
     let blocked=null;
     try { blocked=await checkByFingerprint(visitorId); } catch(e){ console.warn('DB check failed',e); }
 
-    // Setup username screen buttons
     setupUserScreen();
 
     setTimeout(()=>{
-      // Hide loading overlay
       $('loading').classList.add('out');
       setTimeout(()=>{ $('loading').style.display='none'; }, 1000);
-
       setTimeout(()=>{
         if(blocked){
+          // Sincronizamos localStorage con lo que hay en DB (por si lo limpiaron)
+          lsSavePlay(blocked.username, blocked.premio);
           showBlocked(blocked.username, blocked.premio);
         } else {
           showUserScreen();
