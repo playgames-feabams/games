@@ -1,1 +1,985 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Magic Chest</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════
+   VARIABLES & RESET
+════════════════════════════════════════ */
+:root{
+  --baseBg:#1a0a04;
+  --gold1:#FFC900; --gold2:#E8C060; --goldDark:#C8961E; --goldAcc:#D4A840;
+  --red1:#8B0000; --red2:#B22222;
+  --submitBtn:linear-gradient(180deg,#FFC900 0%,#E8C060 63%,#FFCF00 100%);
+  --btnText:#1a0800;
+  --font:"Fredoka One", cursive;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-family:var(--font);color:#fff;}
 
+/* ════════════════════════════════════════
+   BACKGROUND
+   ★ Para usar tu propia imagen:
+     background: url('fondo.jpg') center/cover no-repeat;
+════════════════════════════════════════ */
+#bgLayer{
+  position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 90% 55% at 50% 30%,#3d1505 0%,#1a0804 50%,#080301 100%);
+}
+#bgLayer::before,#bgLayer::after{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(circle,rgba(255,180,50,.65) 1px,transparent 1px),
+    radial-gradient(circle,rgba(200,100,20,.35) 1px,transparent 1px);
+  background-size:170px 170px,110px 110px;
+  background-position:0 0,55px 55px;
+  animation:sDrift 100s linear infinite;
+  opacity:.28;
+}
+#bgLayer::after{background-size:240px 190px,80px 80px;animation-duration:150s;animation-direction:reverse;opacity:.14;}
+@keyframes sDrift{to{background-position:170px 170px,220px 170px;}}
+
+/* ════════════════════════════════════════
+   LOADING
+════════════════════════════════════════ */
+#loading{
+  position:fixed;inset:0;z-index:200;
+  background:var(--baseBg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  transition:opacity .9s;
+}
+#loading.out{opacity:0;pointer-events:none;}
+#loadLogoSlot{display:flex;align-items:center;gap:12px;}
+#loadBar{width:clamp(160px,50vw,220px);height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;}
+#loadFill{height:100%;width:0%;background:var(--submitBtn);border-radius:2px;transition:width .28s ease;box-shadow:0 0 10px var(--gold1);}
+#loadMsg{font-size:.82rem;letter-spacing:4px;text-transform:uppercase;color:var(--goldAcc);}
+
+/* ════════════════════════════════════════
+   PANTALLA: INGRESAR USUARIO
+════════════════════════════════════════ */
+#screenUser{
+  position:fixed;inset:0;z-index:110;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:0;
+  padding:24px;
+}
+#screenUser.show{display:flex;}
+
+.screen-logo{
+  margin-bottom:clamp(20px,5vh,40px);
+  display:flex;align-items:center;justify-content:center;
+}
+
+.su-card{
+  width:min(96%,400px);
+  background:linear-gradient(160deg,#200800 0%,#380e00 55%,#140400 100%);
+  border:1px solid rgba(200,150,30,.3);
+  border-radius:20px;
+  padding:clamp(28px,6vw,44px) clamp(24px,6vw,40px);
+  display:flex;flex-direction:column;align-items:center;gap:18px;
+  box-shadow:0 0 60px rgba(139,0,0,.25),0 0 0 1px rgba(255,180,0,.05);
+  animation:cardPop .5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes cardPop{from{opacity:0;transform:scale(.88) translateY(20px)}to{opacity:1;transform:none}}
+
+.su-title{
+  font-size:clamp(1.2rem,5vw,1.7rem);
+  letter-spacing:3px;text-transform:uppercase;
+  background:var(--submitBtn);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 10px rgba(255,180,0,.4));
+  text-align:center;
+}
+.su-sub{
+  font-size:clamp(.72rem,2.8vw,.88rem);
+  letter-spacing:2px;text-transform:uppercase;
+  color:rgba(212,168,64,.65);
+  text-align:center;
+  line-height:1.5;
+}
+
+#usernameInput{
+  width:100%;
+  background:rgba(255,180,0,.07);
+  border:1.5px solid rgba(200,150,30,.4);
+  border-radius:10px;
+  padding:14px 18px;
+  font-family:var(--font);
+  font-size:clamp(1rem,4vw,1.2rem);
+  letter-spacing:2px;
+  color:#fff;
+  outline:none;
+  text-align:center;
+  text-transform:uppercase;
+  transition:border-color .2s,box-shadow .2s;
+}
+#usernameInput::placeholder{color:rgba(212,168,64,.35);letter-spacing:2px;}
+#usernameInput:focus{
+  border-color:rgba(255,201,0,.7);
+  box-shadow:0 0 18px rgba(255,180,0,.2);
+}
+
+#suError{
+  font-size:clamp(.72rem,2.8vw,.85rem);
+  letter-spacing:2px;text-transform:uppercase;
+  color:#ff6b6b;
+  text-align:center;
+  min-height:1.2em;
+  opacity:0;
+  transition:opacity .25s;
+}
+#suError.show{opacity:1;}
+
+#btnJugar{
+  cursor:pointer;border:none;
+  background:var(--submitBtn);color:var(--btnText);
+  font-family:var(--font);
+  font-size:clamp(.9rem,4vw,1.1rem);
+  letter-spacing:4px;text-transform:uppercase;
+  padding:15px 0;border-radius:8px;width:100%;
+  box-shadow:0 5px 0 rgba(80,30,0,.9),0 8px 24px rgba(255,180,0,.2),inset 0 0 16px rgba(255,255,255,.3);
+  transition:transform .12s,box-shadow .12s;
+}
+#btnJugar:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(80,30,0,.9);}
+#btnJugar:disabled{opacity:.4;pointer-events:none;}
+
+.su-spinner{
+  width:28px;height:28px;
+  border:3px solid rgba(255,201,0,.15);
+  border-top-color:var(--gold1);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+  display:none;
+}
+.su-spinner.show{display:block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ════════════════════════════════════════
+   PANTALLA: YA PARTICIPASTE
+════════════════════════════════════════ */
+#screenBlocked{
+  position:fixed;inset:0;z-index:110;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;
+}
+#screenBlocked.show{display:flex;}
+
+.sb-card{
+  width:min(96%,400px);
+  background:linear-gradient(160deg,#1a0500 0%,#2e0800 55%,#100300 100%);
+  border:1px solid rgba(200,150,30,.3);
+  border-radius:20px;
+  padding:clamp(32px,7vw,52px) clamp(24px,6vw,40px);
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+  box-shadow:0 0 60px rgba(139,0,0,.3),0 0 0 1px rgba(255,180,0,.05);
+  animation:cardPop .5s cubic-bezier(.34,1.56,.64,1);
+}
+
+.sb-icon{font-size:clamp(2.5rem,10vw,4rem);filter:drop-shadow(0 0 16px rgba(255,180,0,.6));}
+
+.sb-title{
+  font-size:clamp(1.1rem,5vw,1.6rem);
+  letter-spacing:3px;text-transform:uppercase;
+  color:var(--gold1);
+  filter:drop-shadow(0 0 10px rgba(255,180,0,.4));
+  text-align:center;
+}
+.sb-name{
+  font-size:clamp(1.3rem,6vw,2rem);
+  letter-spacing:2px;text-transform:uppercase;
+  background:var(--submitBtn);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 10px rgba(255,180,0,.5));
+  text-align:center;
+}
+.sb-sub{
+  font-size:clamp(.72rem,2.8vw,.88rem);
+  letter-spacing:3px;text-transform:uppercase;
+  color:rgba(212,168,64,.6);
+  text-align:center;line-height:1.6;
+}
+.sb-prev-prize{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  background:rgba(255,180,0,.06);
+  border:1px solid rgba(200,150,30,.2);
+  border-radius:12px;
+  padding:16px 28px;
+  width:100%;
+}
+.sb-prev-label{
+  font-size:clamp(.65rem,2.4vw,.78rem);
+  letter-spacing:4px;text-transform:uppercase;
+  color:rgba(212,168,64,.55);
+}
+.sb-prev-coins{
+  font-size:clamp(2rem,9vw,3.2rem);
+  font-family:'Nunito',sans-serif;font-weight:900;
+  background:linear-gradient(180deg,#FFF5B0 0%,#FFD700 45%,#C87000 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 14px rgba(255,160,0,.7));
+}
+.sb-divider{width:80%;height:1px;background:linear-gradient(90deg,transparent,rgba(200,150,30,.3),transparent);}
+
+/* ════════════════════════════════════════
+   GAME APP
+════════════════════════════════════════ */
+#app{
+  position:relative;z-index:1;
+  width:100%;height:100%;
+  display:none;flex-direction:column;align-items:center;
+}
+#app.show{display:flex;}
+
+/* LOGO HEADER
+   ★ reemplazá el contenido de #logoSlot con: <img src="logo-header.png" style="height:clamp(36px,9vw,58px)">
+*/
+#logoHeader{
+  width:100%;flex-shrink:0;padding:14px 20px 10px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,rgba(20,4,0,.97) 0%,transparent 100%);
+  min-height:clamp(58px,14vw,88px);
+}
+#logoSlot{display:flex;align-items:center;gap:11px;}
+.logo-icon{width:clamp(34px,8vw,54px);height:clamp(34px,8vw,54px);background:var(--submitBtn);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:clamp(18px,4.5vw,30px);box-shadow:0 0 22px rgba(255,180,0,.45);flex-shrink:0;}
+.logo-text{font-size:clamp(.9rem,4vw,1.7rem);letter-spacing:3px;text-transform:uppercase;background:var(--submitBtn);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 10px rgba(255,180,0,.5));}
+
+#canvasWrap{flex:1;width:100%;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+#renderCanvas{width:100%;height:100%;display:block;touch-action:none;}
+#glowRing{position:absolute;pointer-events:none;z-index:0;width:min(70vw,320px);height:min(70vw,320px);border-radius:50%;background:radial-gradient(circle,rgba(180,60,0,.20) 0%,transparent 68%);left:50%;top:50%;transform:translate(-50%,-50%);animation:rp 2.8s ease-in-out infinite;}
+@keyframes rp{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.18);opacity:1}}
+
+#bottomBar{width:100%;flex-shrink:0;padding:10px 24px clamp(14px,5vw,32px);display:flex;flex-direction:column;align-items:center;gap:11px;background:linear-gradient(0deg,rgba(18,4,0,.97) 0%,transparent 100%);}
+#hintText{font-size:clamp(.68rem,3vw,.9rem);letter-spacing:3px;text-transform:uppercase;color:rgba(212,168,64,.72);transition:opacity .5s;animation:bl 2s ease-in-out infinite;}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.18}}
+#openBtn{cursor:pointer;border:none;background:var(--submitBtn);color:var(--btnText);font-family:var(--font);font-size:clamp(.85rem,4vw,1.1rem);letter-spacing:4px;text-transform:uppercase;padding:clamp(12px,3vw,17px) 0;border-radius:7px;width:min(92%,380px);box-shadow:0 5px 0 rgba(80,30,0,.9),0 9px 28px rgba(255,180,0,.22),inset 0 0 16px rgba(255,255,255,.3);transition:transform .12s,box-shadow .12s;}
+#openBtn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(80,30,0,.9),inset 0 0 14px rgba(255,255,255,.2);}
+#openBtn:disabled{opacity:.45;pointer-events:none;}
+
+/* ════════════════════════════════════════
+   REWARD OVERLAY
+════════════════════════════════════════ */
+#rwOverlay{
+  position:fixed;inset:0;z-index:50;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(10,3,0,.85);backdrop-filter:blur(10px);
+  padding:24px;
+}
+#rwOverlay.show{display:flex;}
+#rwCard{
+  width:min(96%,440px);
+  background:linear-gradient(168deg,#1a0700 0%,#2e0f00 55%,#100500 100%);
+  border:1px solid rgba(200,150,30,.35);
+  border-radius:20px;
+  padding:clamp(28px,6vw,44px) clamp(24px,6vw,44px);
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+  box-shadow:0 0 0 1px rgba(255,180,0,.06),0 32px 80px rgba(0,0,0,.8),0 0 50px rgba(139,0,0,.28);
+  animation:cUp .6s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes cUp{from{opacity:0;transform:scale(.85) translateY(40px)}to{opacity:1;transform:none}}
+
+.rw-congrats{
+  font-size:clamp(.75rem,3vw,.95rem);
+  letter-spacing:4px;text-transform:uppercase;
+  color:var(--gold1);
+  filter:drop-shadow(0 0 8px rgba(255,180,0,.5));
+  text-align:center;
+  animation:pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{filter:drop-shadow(0 0 8px rgba(255,180,0,.5))}50%{filter:drop-shadow(0 0 20px rgba(255,180,0,.9))}}
+
+.rw-username{
+  font-size:clamp(1.4rem,6vw,2.2rem);
+  letter-spacing:2px;text-transform:uppercase;
+  background:var(--submitBtn);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 12px rgba(255,180,0,.55));
+  text-align:center;line-height:1.1;
+}
+
+#rwTag{
+  font-size:clamp(.7rem,2.5vw,.84rem);
+  letter-spacing:5px;text-transform:uppercase;
+  color:rgba(212,168,64,.65);
+}
+
+#coinRow{display:flex;align-items:center;gap:16px;}
+#coinIcon{
+  width:clamp(56px,14vw,80px);height:clamp(56px,14vw,80px);
+  border-radius:50%;
+  background:radial-gradient(circle at 38% 36%,#fff8c0 0%,#FFD700 30%,#C87A00 70%,#8a5000 100%);
+  box-shadow:0 0 0 3px #b87800,0 0 0 6px #FFD700,0 0 28px rgba(255,180,0,.85),inset 0 2px 6px rgba(255,255,220,.5),inset 0 -3px 8px rgba(80,30,0,.4);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  animation:sc 1.5s ease-out;
+}
+#coinIcon::before{content:'$';font-family:"Fredoka One",cursive;font-size:clamp(26px,7vw,40px);color:#1a0800;text-shadow:0 1px 0 rgba(255,220,80,.6),0 -1px 2px rgba(80,30,0,.6);}
+@keyframes sc{0%{transform:rotateY(0) scale(.4);opacity:0}40%{transform:rotateY(720deg) scale(1.25);opacity:1}100%{transform:rotateY(720deg) scale(1)}}
+
+#coinAmt{font-size:clamp(2.8rem,12vw,5.5rem);line-height:1;background:linear-gradient(180deg,#FFF5B0 0%,#FFD700 45%,#C87000 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 22px rgba(255,160,0,.75));font-family:'Nunito',sans-serif;font-weight:900;}
+
+.rw-divider{width:80%;height:1px;background:linear-gradient(90deg,transparent,rgba(200,150,30,.35),transparent);}
+
+.rw-footer{
+  font-size:clamp(.68rem,2.5vw,.82rem);
+  letter-spacing:3px;text-transform:uppercase;
+  color:rgba(212,168,64,.45);
+  text-align:center;line-height:1.6;
+}
+
+/* ════════════════════════════════════════
+   SAVING OVERLAY (spinner while saving)
+════════════════════════════════════════ */
+#savingOverlay{
+  position:fixed;inset:0;z-index:180;
+  background:rgba(10,3,0,.7);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;gap:16px;
+  flex-direction:column;
+}
+#savingOverlay.show{display:flex;}
+#savingOverlay .su-spinner{display:block;width:40px;height:40px;border-width:4px;}
+#savingOverlay p{font-size:.82rem;letter-spacing:4px;text-transform:uppercase;color:var(--goldAcc);}
+
+/* coin burst */
+.cBurst{position:fixed;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle,#FFF0A0,#C87000);pointer-events:none;animation:cFly var(--dur) ease-out forwards;box-shadow:0 0 6px #C87000;z-index:60;}
+@keyframes cFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(.3);opacity:0}}
+</style>
+</head>
+<body>
+<div id="bgLayer"></div>
+
+<!-- ══════════════════════════════════════
+     LOADING
+══════════════════════════════════════ -->
+<div id="loading">
+  <div id="loadLogoSlot">
+    <!-- ★ logo-loading.png ★ -->
+    <img src="logo-loading.png" alt="Logo" style="height:clamp(48px,12vw,80px)">
+  </div>
+  <div id="loadBar"><div id="loadFill"></div></div>
+  <div id="loadMsg">Cargando...</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA: INGRESÁ TU USUARIO
+══════════════════════════════════════ -->
+<div id="screenUser">
+  <div class="screen-logo">
+    <!-- ★ logo-header.png ★ -->
+    <img src="logo-header.png" alt="Logo" style="height:clamp(40px,10vw,66px)">
+  </div>
+  <div class="su-card">
+    <div class="su-title">¡Abrí tu cofre!</div>
+    <div class="su-sub">Ingresá tu nombre de usuario<br>para reclamar tu premio</div>
+    <input id="usernameInput" type="text" maxlength="30"
+      placeholder="TU USUARIO" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div id="suError"></div>
+    <div class="su-spinner" id="suSpinner"></div>
+    <button id="btnJugar">Jugar</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA: YA PARTICIPASTE
+══════════════════════════════════════ -->
+<div id="screenBlocked">
+  <div class="sb-card">
+    <div class="sb-icon">🔒</div>
+    <div class="sb-title">Ya participaste</div>
+    <div class="sb-name" id="sbName">—</div>
+    <div class="sb-sub">Ya usaste tu oportunidad<br>de recibir fichas gratis</div>
+    <div class="sb-divider"></div>
+    <div class="sb-prev-prize">
+      <div class="sb-prev-label">Tu premio fue</div>
+      <div class="sb-prev-coins" id="sbPrevCoins">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     JUEGO
+══════════════════════════════════════ -->
+<div id="app">
+  <header id="logoHeader">
+    <div id="logoSlot">
+      <!-- ★ logo-header.png ★ -->
+      <img src="logo-header.png" alt="Logo" style="height:clamp(36px,9vw,58px)">
+    </div>
+  </header>
+  <div id="canvasWrap">
+    <div id="glowRing"></div>
+    <canvas id="renderCanvas"></canvas>
+  </div>
+  <div id="bottomBar">
+    <div id="hintText">⛃ Tocá el cofre para abrirlo ⛃</div>
+    <button id="openBtn">Abrir Cofre</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     REWARD OVERLAY (una sola vez)
+══════════════════════════════════════ -->
+<div id="rwOverlay">
+  <div id="rwCard">
+    <div class="rw-congrats">¡Felicitaciones!</div>
+    <div class="rw-username" id="rwUsername">—</div>
+    <div id="rwTag">Recibiste</div>
+    <div id="coinRow">
+      <div id="coinIcon"></div>
+      <div id="coinAmt">0</div>
+    </div>
+    <div class="rw-divider"></div>
+    <div class="rw-footer">Tu premio ha sido registrado.<br>¡Gracias por participar!</div>
+  </div>
+</div>
+
+<!-- SAVING OVERLAY -->
+<div id="savingOverlay">
+  <div class="su-spinner"></div>
+  <p>Guardando premio...</p>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════ -->
+<!-- FingerprintJS -->
+<script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- Babylon.js -->
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════════════
+   ★★★ CONFIGURACIÓN SUPABASE ★★★
+   1. Creá una cuenta gratis en https://supabase.com
+   2. Creá un nuevo proyecto
+   3. Ejecutá este SQL en el editor de Supabase:
+
+      create table jugadas (
+        id          uuid default gen_random_uuid() primary key,
+        username    text not null,
+        fingerprint text not null,
+        premio      integer not null,
+        created_at  timestamptz default now()
+      );
+      alter table jugadas enable row level security;
+      create policy "insert libre" on jugadas for insert with check (true);
+      create policy "select libre" on jugadas for select using (true);
+
+   4. En Settings → API, copiá la URL y la clave "anon public"
+   5. Reemplazá los valores de abajo
+════════════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://seegvnuplmkkaznzywur.supabase.co';   // ← tu URL
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZWd2bnVwbG1ra2F6bnp5d3VyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MjMzMjMsImV4cCI6MjA4OTE5OTMyM30.cQoOUof3cDQqnXc84WyjD6gdjEW47LmUOnmLFZVHEKg';    // ← tu anon key
+const TABLE        = 'jugadas';
+
+/* ════════════════════════════════════════════════════
+   PREMIOS FIJOS
+════════════════════════════════════════════════════ */
+const PRIZES=[
+  {coins:1000, w:40},
+  {coins:1500, w:30},
+  {coins:2000, w:20},
+  {coins:3000, w: 9},
+  {coins:5000, w: 1},
+];
+const pickPrize=()=>{
+  const tot=PRIZES.reduce((s,p)=>s+p.w,0); let r=Math.random()*tot;
+  for(const p of PRIZES){r-=p.w; if(r<=0) return p.coins;} return PRIZES[0].coins;
+};
+
+/* ════════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════════ */
+const RR  = (a,b) => a+Math.random()*(b-a);
+const clp = (v,a,b) => Math.max(a,Math.min(b,v));
+const lrp = (a,b,t) => a+(b-a)*t;
+const eio = t => t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+const eob = t => { const c=1.70158,c3=c+1; return 1+c3*Math.pow(t-1,3)+c*Math.pow(t-1,2); };
+const fmt = n => n.toLocaleString('es-AR');
+const $   = id => document.getElementById(id);
+
+/* ════════════════════════════════════════════════════
+   GLOBALS
+════════════════════════════════════════════════════ */
+let supabase, visitorId, currentUsername;
+let canvas, engine, scene, cam;
+let root, hingePivot, innerL, glowL;
+let coinPS, hitList=[];
+let state='idle', stateT=0, idleT=0;
+const SHAKE=.80, OPEN=1.20;
+
+/* ════════════════════════════════════════════════════
+   SUPABASE HELPERS
+════════════════════════════════════════════════════ */
+async function checkByFingerprint(fp){
+  const {data,error} = await supabase
+    .from(TABLE).select('username,premio').eq('fingerprint',fp).maybeSingle();
+  if(error) console.warn('FP check error:',error);
+  return data; // null if not found
+}
+async function checkByUsername(name){
+  const {data,error} = await supabase
+    .from(TABLE).select('username,premio').eq('username',name.toUpperCase()).maybeSingle();
+  if(error) console.warn('Username check error:',error);
+  return data;
+}
+async function savePlay(username, fp, premio){
+  const {error} = await supabase.from(TABLE).insert([{
+    username: username.toUpperCase(),
+    fingerprint: fp,
+    premio
+  }]);
+  if(error) console.error('Save error:',error);
+  return !error;
+}
+
+/* ════════════════════════════════════════════════════
+   SCREENS
+════════════════════════════════════════════════════ */
+function showLoading()   { $('loading').classList.remove('out'); $('loading').style.display='flex'; }
+function hideLoading()   { $('loading').classList.add('out'); setTimeout(()=>$('loading').style.display='none',1000); }
+function showUserScreen(){ $('screenUser').classList.add('show'); }
+function hideUserScreen(){ $('screenUser').classList.remove('show'); }
+function showGame()      { $('app').classList.add('show'); }
+function showBlocked(username, premio){
+  $('sbName').textContent = username;
+  $('sbPrevCoins').textContent = fmt(premio) + ' fichas';
+  $('screenBlocked').classList.add('show');
+}
+
+/* ════════════════════════════════════════════════════
+   USERNAME SCREEN LOGIC
+════════════════════════════════════════════════════ */
+function setError(msg){
+  const el=$('suError');
+  el.textContent=msg;
+  el.classList.toggle('show', !!msg);
+}
+function setLoading(on){
+  $('suSpinner').classList.toggle('show',on);
+  $('btnJugar').disabled=on;
+}
+
+$('btnJugar') && document.addEventListener('DOMContentLoaded', ()=>{
+  const inp=$('usernameInput');
+
+  // Allow Enter key
+  inp && inp.addEventListener('keydown', e=>{
+    if(e.key==='Enter') $('btnJugar').click();
+  });
+
+  $('btnJugar') && $('btnJugar').addEventListener('click', async()=>{
+    const name = ($('usernameInput').value||'').trim();
+    if(name.length<2){ setError('Mínimo 2 caracteres'); return; }
+    if(name.length>30){ setError('Máximo 30 caracteres'); return; }
+    setError('');
+    setLoading(true);
+
+    // Check if username already used
+    const existing = await checkByUsername(name);
+    if(existing){
+      setLoading(false);
+      setError('Este usuario ya participó');
+      return;
+    }
+
+    // Also double-check fingerprint in case they changed username
+    const fpCheck = await checkByFingerprint(visitorId);
+    if(fpCheck){
+      setLoading(false);
+      hideUserScreen();
+      showBlocked(fpCheck.username, fpCheck.premio);
+      return;
+    }
+
+    currentUsername = name;
+    setLoading(false);
+    hideUserScreen();
+    showGame();
+  });
+});
+
+/* ════════════════════════════════════════════════════
+   MATERIAL HELPER
+════════════════════════════════════════════════════ */
+function pbr(n,r,g,b,met=0,rou=.82,er=0,eg=0,eb=0){
+  const m=new BABYLON.PBRMaterial(n,scene);
+  m.albedoColor=new BABYLON.Color3(r,g,b);
+  m.metallic=met; m.roughness=rou;
+  if(er||eg||eb) m.emissiveColor=new BABYLON.Color3(er,eg,eb);
+  return m;
+}
+
+/* ════════════════════════════════════════════════════
+   BUILD CHEST
+════════════════════════════════════════════════════ */
+function buildChest(){
+  const B=(n,w,h,d)=>BABYLON.MeshBuilder.CreateBox(n,{width:w,height:h,depth:d},scene);
+  const C=(n,h,dia,t=12)=>BABYLON.MeshBuilder.CreateCylinder(n,{height:h,diameter:dia,tessellation:t},scene);
+  const S=(n,dia)=>BABYLON.MeshBuilder.CreateSphere(n,{diameter:dia,segments:8},scene);
+
+  const mW1  = pbr('mW1', .42,.14,.04, 0,.88);
+  const mW2  = pbr('mW2', .55,.22,.07, 0,.84);
+  const mW3  = pbr('mW3', .34,.09,.02, 0,.90);
+  const mGold= pbr('mGld',.86,.64,.08, 1,.07, .22,.13,.0);
+  const mBras= pbr('mBrs',.44,.32,.06, 1,.18);
+  const mLid = pbr('mLid',.17,.07,.01, .6,.20);
+  const mRed = pbr('mRed',.58,.03,.03, 0,.70);
+  const mIn  = pbr('mIn', .30,.09,.01, 0,.55, .14,.05,.01);
+  const mBolt= pbr('mBlt',.94,.75,.06, 1,.05, .36,.22,.0);
+
+  root=new BABYLON.TransformNode('root',scene);
+  const put=(m,par,x,y,z)=>{m.parent=par;m.position.set(x,y,z);return m;};
+  const reg=(m)=>{hitList.push(m);return m;};
+
+  const PW=2.70,PH=.22,PD=1.92;
+  reg(put(B('base',PW,PH,PD),root,0,PH/2,0)).material=mBras;
+  [[PW,.13,.13,0,PH+.04,PD/2-.05],[PW,.13,.13,0,PH+.04,-PD/2+.05],
+   [.13,.13,PD,-PW/2+.05,PH+.04,0],[.13,.13,PD,PW/2-.05,PH+.04,0]]
+  .forEach(([w,h,d,x,y,z],i)=>{put(B('br'+i,w,h,d),root,x,y,z).material=mGold;});
+  [[-1,1],[1,1],[-1,-1],[1,-1]].forEach(([sx,sz],i)=>{
+    const ts=reg(put(S('ts'+i,.18),root,sx*(PW/2-.08),PH+.06,sz*(PD/2-.08)));
+    ts.material=mGold; glowL.addIncludedOnlyMesh(ts);
+  });
+
+  const BW=2.16,BH=1.60,BD=1.62;
+  const BY0=PH+.04;
+  const pH=BH/6;
+  const woods=[mW1,mW2,mW3,mW2,mW1,mW3];
+  for(let i=0;i<6;i++){
+    const py=BY0+pH*i+pH/2;
+    reg(put(B('pl'+i,BW,pH-.014,BD),root,0,py,0)).material=woods[i];
+  }
+  const BYc=BY0+BH/2;
+
+  const CW=.26,CD=.26,CH=BH+.26;
+  const pilY=BY0+CH/2;
+  [[-1,1],[1,1],[-1,-1],[1,-1]].forEach(([sx,sz],i)=>{
+    reg(put(B('cp'+i,CW,CH,CD),root,sx*(BW/2+.02),pilY,sz*(BD/2+.02))).material=mBras;
+  });
+  const bodyTop=BY0+BH;
+  [[-1,1],[1,1]].forEach(([sx])=>{
+    [.25,.50,.75].forEach(f=>{
+      const st=put(C('st'+sx+'_'+f,.075,.14,8),root,sx*(BW/2+.02),BY0+BH*f,BD/2+.02+.085);
+      st.rotation.x=Math.PI/2; st.material=mGold; glowL.addIncludedOnlyMesh(st);
+    });
+  });
+  [.20,.82].forEach((f,i)=>{
+    put(B('band'+i,BW+CW*1.2,.11,BD+CD*1.2),root,0,BY0+BH*f,0).material=mGold;
+  });
+
+  const ig=put(B('ig',BW-.06,.05,BD-.06),root,0,BY0+.03,0);
+  ig.material=mIn; glowL.addIncludedOnlyMesh(ig);
+
+  const bZ=BD/2+.055, bY=BYc+.06;
+  const disc=reg(put(C('disc',.08,.78,32),root,0,bY,bZ));
+  disc.rotation.x=Math.PI/2; disc.material=mRed; glowL.addIncludedOnlyMesh(disc);
+  const ring=reg(put(BABYLON.MeshBuilder.CreateTorus('ring',{diameter:.92,thickness:.055,tessellation:32},scene),root,0,bY,bZ));
+  ring.rotation.x=Math.PI/2; ring.material=mGold; glowL.addIncludedOnlyMesh(ring);
+  const ring2=put(BABYLON.MeshBuilder.CreateTorus('ring2',{diameter:.64,thickness:.024,tessellation:28},scene),root,0,bY,bZ+.02);
+  ring2.rotation.x=Math.PI/2; ring2.material=mGold;
+
+  // E letter
+  put(B('eL',.088,.46,.088),root,+.095,bY,bZ+.092).material=mBolt;
+  put(B('eT',.24,.086,.088),root,-.018,bY+.19,bZ+.092).material=mBolt;
+  put(B('eM',.19,.076,.088),root,-.026,bY,bZ+.092).material=mBolt;
+  put(B('eB',.24,.086,.088),root,-.018,bY-.19,bZ+.092).material=mBolt;
+  ['eL','eT','eM','eB'].forEach(n=>{
+    const m=scene.getMeshByName(n); if(m) glowL.addIncludedOnlyMesh(m);
+  });
+
+  const pip=reg(put(S('pip',.13),root,0,bY+.46,bZ));
+  pip.material=mGold; glowL.addIncludedOnlyMesh(pip);
+
+  const LW=BW+CW*1.7,LH=.50,LD=BD+CD*1.7;
+  const backZ=-BD/2-CD*.06;
+  hingePivot=new BABYLON.TransformNode('hinge',scene);
+  hingePivot.parent=root; hingePivot.position.set(0,bodyTop,backZ);
+  reg(put(B('lidB',LW,LH,LD),hingePivot,0,LH/2,LD/2)).material=mLid;
+  put(B('lidRim',LW+.02,.09,LD+.02),hingePivot,0,.01,LD/2).material=mGold;
+  put(B('lidBnd',LW+.02,.10,LD+.02),hingePivot,0,LH*.56,LD/2).material=mBras;
+  [-.60,0,.60].forEach((x,i)=>{
+    const hc=put(C('hc'+i,.28,.17,10),hingePivot,x,.04,.10);
+    hc.rotation.x=Math.PI/2; hc.material=mBras;
+  });
+  hitList.forEach(m=>m.receiveShadows=true);
+}
+
+/* ════════════════════════════════════════════════════
+   BUILD DECORATIONS
+════════════════════════════════════════════════════ */
+function buildDecorations(){
+  const B=(n,w,h,d)=>BABYLON.MeshBuilder.CreateBox(n,{width:w,height:h,depth:d},scene);
+  const C=(n,h,dia,t=28)=>BABYLON.MeshBuilder.CreateCylinder(n,{height:h,diameter:dia,tessellation:t},scene);
+  const mCR  = pbr('cR',  .65,.04,.04, 0,.68);
+  const mCBk = pbr('cBk', .10,.06,.04, .2,.62);
+  const mCG  = pbr('cG',  .90,.66,.07, 1,.07, .22,.13,.0);
+  const mDR  = pbr('dR',  .68,.05,.05, 0,.68);
+  const mDot = pbr('dDt', .96,.93,.84, 0,.80);
+
+  function chipStack(id,cx,cz,count,startRed){
+    for(let i=0;i<count;i++){
+      const y=.040+i*.083, isRed=startRed?(i%2===0):(i%2!==0), n='cs'+id+'_'+i;
+      const body=C(n+'b',.082,.54,28); body.position.set(cx,y,cz);
+      body.material=isRed?mCR:mCBk; body.receiveShadows=true;
+      glowL.addIncludedOnlyMesh(body);
+      const rim=BABYLON.MeshBuilder.CreateTorus(n+'r',{diameter:.58,thickness:.052,tessellation:28},scene);
+      rim.position.set(cx,y,cz); rim.rotation.x=Math.PI/2; rim.material=mCG;
+      glowL.addIncludedOnlyMesh(rim);
+    }
+  }
+  function faceChip(id,cx,cy,cz,tilt,ryaw,isRed){
+    const g=new BABYLON.TransformNode('fc'+id,scene);
+    g.position.set(cx,cy,cz); g.rotation.set(-Math.PI/2+tilt,ryaw,0);
+    const body=C('fc'+id+'b',.082,.54,28); body.parent=g;
+    body.material=isRed?mCR:mCBk; glowL.addIncludedOnlyMesh(body);
+    const rim=BABYLON.MeshBuilder.CreateTorus('fc'+id+'r',{diameter:.58,thickness:.052,tessellation:28},scene);
+    rim.parent=g; rim.rotation.x=Math.PI/2; rim.material=mCG; glowL.addIncludedOnlyMesh(rim);
+    const rin=BABYLON.MeshBuilder.CreateTorus('fc'+id+'i',{diameter:.40,thickness:.020,tessellation:24},scene);
+    rin.parent=g; rin.rotation.x=Math.PI/2; rin.material=mCG; glowL.addIncludedOnlyMesh(rin);
+  }
+  function makeDie(id,px,py,pz,rx,ry,rz){
+    const g=new BABYLON.TransformNode('d'+id,scene);
+    g.position.set(px,py,pz); g.rotation.set(rx,ry,rz);
+    const box=B('d'+id+'b',.46,.46,.46); box.parent=g; box.material=mDR; box.receiveShadows=true;
+    glowL.addIncludedOnlyMesh(box);
+    const dS=.070, dF=.242;
+    function dot(dx,dy,dz){
+      const s=BABYLON.MeshBuilder.CreateSphere('d'+id+'_'+[dx,dy,dz].join('_'),{diameter:dS,segments:6},scene);
+      s.parent=g; s.position.set(dx,dy,dz); s.material=mDot;
+    }
+    dot(0,0,dF);
+    dot(-.085,.085,-dF);dot(.085,.085,-dF);dot(-.085,0,-dF);dot(.085,0,-dF);dot(-.085,-.085,-dF);dot(.085,-.085,-dF);
+    dot(dF,.085,-.085);dot(dF,-.085,.085);
+    dot(-dF,.085,.085);dot(-dF,.085,-.085);dot(-dF,0,0);dot(-dF,-.085,.085);dot(-dF,-.085,-.085);
+    dot(-.085,dF,.085);dot(0,dF,0);dot(.085,dF,-.085);
+    dot(-.085,-dF,.085);dot(.085,-dF,.085);dot(-.085,-dF,-.085);dot(.085,-dF,-.085);
+  }
+
+  chipStack('lm',-2.55, 0.10,6,true);
+  chipStack('ls',-2.82,-0.42,3,false);
+  faceChip ('lf',-2.22, 0.22,0.85,0.38, 0.22,true);
+  makeDie  ('l', -2.82, 0.23,0.70,.44,.72,.32);
+  chipStack('rm', 2.55, 0.10,6,false);
+  chipStack('rs', 2.82,-0.42,3,true);
+  faceChip ('rf', 2.22, 0.22,0.85,0.38,-0.22,false);
+  makeDie  ('r',  2.82, 0.23,0.70,-.36,.55,-.48);
+}
+
+/* ════════════════════════════════════════════════════
+   PARTICLES
+════════════════════════════════════════════════════ */
+function buildParticles(){
+  coinPS=new BABYLON.ParticleSystem('cp',260,scene);
+  coinPS.particleTexture=new BABYLON.Texture('https://assets.babylonjs.com/textures/flare.png',scene);
+  coinPS.emitter=new BABYLON.Vector3(0,1.80,.40);
+  coinPS.minEmitBox=new BABYLON.Vector3(-.55,0,-.3); coinPS.maxEmitBox=new BABYLON.Vector3(.55,.2,.3);
+  coinPS.color1=new BABYLON.Color4(1,.90,.10,1); coinPS.color2=new BABYLON.Color4(.90,.50,0,1);
+  coinPS.colorDead=new BABYLON.Color4(.8,.35,0,0);
+  coinPS.minSize=.10; coinPS.maxSize=.28;
+  coinPS.minLifeTime=.8; coinPS.maxLifeTime=2.4;
+  coinPS.emitRate=0; coinPS.gravity=new BABYLON.Vector3(0,-5.5,0);
+  coinPS.direction1=new BABYLON.Vector3(-3,8,-2); coinPS.direction2=new BABYLON.Vector3(3,13,2);
+  coinPS.minEmitPower=1; coinPS.maxEmitPower=5; coinPS.updateSpeed=.018;
+  coinPS.blendMode=BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+}
+
+function burst(){
+  const cx=innerWidth/2, cy=innerHeight*.42;
+  for(let i=0;i<26;i++){
+    const el=document.createElement('div'); el.className='cBurst';
+    const a=i/26*Math.PI*2+RR(-.3,.3), d=RR(70,240), dur=RR(.65,1.5).toFixed(2);
+    el.style.setProperty('--tx',`${Math.cos(a)*d}px`);
+    el.style.setProperty('--ty',`${Math.sin(a)*d-RR(20,110)}px`);
+    el.style.setProperty('--dur',`${dur}s`);
+    el.style.left=`${cx-7+RR(-18,18)}px`; el.style.top=`${cy-7+RR(-8,8)}px`;
+    el.style.animationDelay=`${RR(0,.22)}s`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),(parseFloat(dur)+.6)*1e3);
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   SCENE
+════════════════════════════════════════════════════ */
+function createScene(){
+  scene=new BABYLON.Scene(engine);
+  scene.clearColor=new BABYLON.Color4(0,0,0,0);
+  cam=new BABYLON.ArcRotateCamera('cam',Math.PI/2,1.13,10.2,new BABYLON.Vector3(0,1.05,0),scene);
+  cam.fov=1.22;
+  cam.lowerAlphaLimit=cam.upperAlphaLimit=Math.PI/2;
+  cam.lowerBetaLimit=cam.upperBetaLimit=1.13;
+  cam.lowerRadiusLimit=cam.upperRadiusLimit=10.2;
+  cam.attachControl(canvas,false);
+
+  const amb=new BABYLON.HemisphericLight('amb',BABYLON.Vector3.Up(),scene);
+  amb.intensity=.32; amb.diffuse=new BABYLON.Color3(.95,.78,.45); amb.groundColor=new BABYLON.Color3(.05,.02,.00);
+  const dir=new BABYLON.DirectionalLight('dir',new BABYLON.Vector3(-.2,-1,-.45),scene);
+  dir.intensity=1.30; dir.position=new BABYLON.Vector3(3,12,10);
+  dir.diffuse=new BABYLON.Color3(1.0,.88,.60); dir.specular=new BABYLON.Color3(1.0,.92,.70);
+  const rim=new BABYLON.DirectionalLight('rim',new BABYLON.Vector3(.05,-.15,1),scene);
+  rim.intensity=.18; rim.diffuse=new BABYLON.Color3(.55,.28,.05);
+  innerL=new BABYLON.PointLight('inn',new BABYLON.Vector3(0,1.65,.45),scene);
+  innerL.diffuse=new BABYLON.Color3(.90,.55,.10); innerL.specular=new BABYLON.Color3(1.0,.70,.20);
+  innerL.intensity=0; innerL.range=12;
+
+  glowL=new BABYLON.GlowLayer('gl',scene); glowL.intensity=.58;
+  const shd=new BABYLON.ShadowGenerator(1024,dir);
+  shd.useBlurExponentialShadowMap=true; shd.blurKernel=22;
+
+  buildChest();
+  buildDecorations();
+  hitList.forEach(m=>{try{shd.addShadowCaster(m,true);}catch(e){}});
+  buildParticles();
+
+  scene.onPointerObservable.add(info=>{
+    if(info.type!==BABYLON.PointerEventTypes.POINTERDOWN||state!=='idle') return;
+    const hit=scene.pick(scene.pointerX,scene.pointerY);
+    if(hit.hit&&hitList.includes(hit.pickedMesh)) startOpen();
+  });
+  scene.onBeforeRenderObservable.add(tick);
+}
+
+/* ════════════════════════════════════════════════════
+   GAME LOOP
+════════════════════════════════════════════════════ */
+function tick(){
+  const dt=engine.getDeltaTime()/1000;
+  idleT+=dt; stateT+=dt;
+  const bob=Math.sin(idleT*1.18)*.065;
+  if(state==='idle'){
+    root.position.y=bob;
+    innerL.intensity=.18+Math.sin(idleT*2.0)*.09;
+    glowL.intensity=.42+Math.sin(idleT*1.5)*.14;
+    innerL.diffuse.set(.90+Math.sin(idleT*.9)*.07,.55,.10);
+    return;
+  }
+  if(state==='shake'){
+    const t=clp(stateT/SHAKE,0,1);
+    const sh=Math.sin(t*Math.PI*20)*(1-t)*.22;
+    root.position.x=sh; root.position.y=bob*(1-t*.5); root.rotation.z=sh*.25;
+    innerL.intensity=.22+t*4.5; innerL.diffuse.set(.9+t*.07,.55+t*.35,.10);
+    glowL.intensity=.55+t*3.8;
+    if(stateT>=SHAKE){root.position.x=0;root.rotation.z=0;state='open';stateT=0;}
+    return;
+  }
+  if(state==='open'){
+    const t=clp(stateT/OPEN,0,1), e=eio(t);
+    hingePivot.rotation.x=-e*2.44;
+    innerL.intensity=t<.28?3.5+Math.sin((t/.28)*Math.PI)*6:lrp(3.5,.70,(t-.28)/.72);
+    glowL.intensity=lrp(4.8,.92,t);
+    if(stateT>=OPEN){innerL.intensity=.70;glowL.intensity=.92;onDone();}
+    return;
+  }
+  if(state==='reward'){
+    root.position.y=bob*.45;
+    innerL.intensity=.55+Math.sin(idleT*1.3)*.18;
+    glowL.intensity=.82+Math.sin(idleT*1.0)*.20;
+  }
+}
+
+function startOpen(){
+  if(state!=='idle') return;
+  state='shake'; stateT=0;
+  $('openBtn').disabled=true;
+  $('hintText').style.opacity='0';
+}
+
+async function onDone(){
+  state='reward';
+
+  const coins=pickPrize();
+
+  // Show saving overlay while we persist to Supabase
+  $('savingOverlay').classList.add('show');
+  await savePlay(currentUsername, visitorId, coins);
+  $('savingOverlay').classList.remove('show');
+
+  // Coin burst + particles
+  burst();
+  coinPS.start(); coinPS.manualEmitCount=180;
+  setTimeout(()=>{ try{coinPS.stop();}catch(e){} }, 300);
+
+  // Populate reward card
+  $('rwUsername').textContent = currentUsername.toUpperCase();
+  $('coinAmt').textContent = '0';
+  $('rwOverlay').classList.add('show');
+
+  // Animated counter
+  const dur=900, t0=performance.now();
+  (function cnt(now){
+    const t=clp((now-t0)/dur,0,1);
+    $('coinAmt').textContent = fmt(Math.round(eob(t)*coins));
+    if(t<1) requestAnimationFrame(cnt);
+  })(performance.now());
+}
+
+/* ════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', async ()=>{
+  // Init Supabase
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Init canvas + engine
+  canvas  = $('renderCanvas');
+  engine  = new BABYLON.Engine(canvas, true, {antialias:true, adaptToDeviceRatio:true});
+
+  // Loading bar animation
+  const fill=$('loadFill');
+  const msgs=['Cargando...','Preparando cofre...','Casi listo...'];
+  let p=0;
+  const iv=setInterval(()=>{
+    p=Math.min(p+RR(8,18),88);
+    fill.style.width=p+'%';
+    $('loadMsg').textContent=msgs[Math.floor(p/33)%msgs.length];
+  },220);
+
+  // Init FingerprintJS
+  try {
+    const fp=await FingerprintJS.load();
+    const result=await fp.get();
+    visitorId=result.visitorId;
+  } catch(e){
+    console.warn('FingerprintJS failed, using fallback'); 
+    visitorId='unknown_'+Math.random().toString(36).slice(2);
+  }
+
+  // Create Babylon scene
+  createScene();
+
+  // Once scene is ready: check Supabase, then show appropriate screen
+  scene.executeWhenReady(async ()=>{
+    clearInterval(iv); fill.style.width='100%';
+    $('loadMsg').textContent='¡Listo!';
+
+    // Check fingerprint
+    let blocked=null;
+    try { blocked=await checkByFingerprint(visitorId); } catch(e){}
+
+    setTimeout(()=>{
+      hideLoading();
+      setTimeout(()=>{
+        if(blocked){
+          showBlocked(blocked.username, blocked.premio);
+        } else {
+          showUserScreen();
+        }
+      }, 200);
+    }, 500);
+  });
+
+  engine.runRenderLoop(()=>{ if(scene) scene.render(); });
+  window.addEventListener('resize',()=>engine.resize());
+
+  $('openBtn').addEventListener('click',()=>{ if(state==='idle') startOpen(); });
+});
+</script>
+</body>
+</html>
