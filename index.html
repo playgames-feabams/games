@@ -229,9 +229,8 @@ html,body{width:100%;height:100%;background:var(--baseBg);overflow:hidden;font-f
 #app{
   position:relative;z-index:1;
   width:100%;height:100%;
-  display:none;flex-direction:column;align-items:center;
+  display:flex;flex-direction:column;align-items:center;
 }
-#app.show{display:flex;}
 
 /* LOGO HEADER
    ★ reemplazá el contenido de #logoSlot con: <img src="logo-header.png" style="height:clamp(36px,9vw,58px)">
@@ -507,7 +506,7 @@ const $   = id => document.getElementById(id);
 /* ════════════════════════════════════════════════════
    GLOBALS
 ════════════════════════════════════════════════════ */
-let supabase, visitorId, currentUsername;
+let db, visitorId, currentUsername;
 let canvas, engine, scene, cam;
 let root, hingePivot, innerL, glowL;
 let coinPS, hitList=[];
@@ -518,19 +517,19 @@ const SHAKE=.80, OPEN=1.20;
    SUPABASE HELPERS
 ════════════════════════════════════════════════════ */
 async function checkByFingerprint(fp){
-  const {data,error} = await supabase
+  const {data,error} = await db
     .from(TABLE).select('username,premio').eq('fingerprint',fp).maybeSingle();
   if(error) console.warn('FP check error:',error);
-  return data; // null if not found
+  return data;
 }
 async function checkByUsername(name){
-  const {data,error} = await supabase
+  const {data,error} = await db
     .from(TABLE).select('username,premio').eq('username',name.toUpperCase()).maybeSingle();
   if(error) console.warn('Username check error:',error);
   return data;
 }
 async function savePlay(username, fp, premio){
-  const {error} = await supabase.from(TABLE).insert([{
+  const {error} = await db.from(TABLE).insert([{
     username: username.toUpperCase(),
     fingerprint: fp,
     premio
@@ -542,11 +541,9 @@ async function savePlay(username, fp, premio){
 /* ════════════════════════════════════════════════════
    SCREENS
 ════════════════════════════════════════════════════ */
-function showLoading()   { $('loading').classList.remove('out'); $('loading').style.display='flex'; }
-function hideLoading()   { $('loading').classList.add('out'); setTimeout(()=>$('loading').style.display='none',1000); }
 function showUserScreen(){ $('screenUser').classList.add('show'); }
 function hideUserScreen(){ $('screenUser').classList.remove('show'); }
-function showGame()      { $('app').classList.add('show'); }
+function showGame()      { /* canvas always renders; just hide user screen */ hideUserScreen(); }
 function showBlocked(username, premio){
   $('sbName').textContent = username;
   $('sbPrevCoins').textContent = fmt(premio) + ' fichas';
@@ -565,45 +562,27 @@ function setLoading(on){
   $('suSpinner').classList.toggle('show',on);
   $('btnJugar').disabled=on;
 }
-
-$('btnJugar') && document.addEventListener('DOMContentLoaded', ()=>{
+function setupUserScreen(){
   const inp=$('usernameInput');
-
-  // Allow Enter key
   inp && inp.addEventListener('keydown', e=>{
     if(e.key==='Enter') $('btnJugar').click();
   });
-
-  $('btnJugar') && $('btnJugar').addEventListener('click', async()=>{
-    const name = ($('usernameInput').value||'').trim();
+  $('btnJugar').addEventListener('click', async()=>{
+    const name = (inp.value||'').trim();
     if(name.length<2){ setError('Mínimo 2 caracteres'); return; }
     if(name.length>30){ setError('Máximo 30 caracteres'); return; }
     setError('');
     setLoading(true);
-
-    // Check if username already used
     const existing = await checkByUsername(name);
-    if(existing){
-      setLoading(false);
-      setError('Este usuario ya participó');
-      return;
-    }
-
-    // Also double-check fingerprint in case they changed username
+    if(existing){ setLoading(false); setError('Este usuario ya participó'); return; }
     const fpCheck = await checkByFingerprint(visitorId);
-    if(fpCheck){
-      setLoading(false);
-      hideUserScreen();
-      showBlocked(fpCheck.username, fpCheck.premio);
-      return;
-    }
-
+    if(fpCheck){ setLoading(false); hideUserScreen(); showBlocked(fpCheck.username, fpCheck.premio); return; }
     currentUsername = name;
     setLoading(false);
     hideUserScreen();
     showGame();
   });
-});
+}
 
 /* ════════════════════════════════════════════════════
    MATERIAL HELPER
@@ -924,10 +903,10 @@ async function onDone(){
    INIT
 ════════════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', async ()=>{
-  // Init Supabase
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  // Init Supabase — rename to db to avoid conflict with CDN global
+  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // Init canvas + engine
+  // Init canvas + engine (canvas is always in DOM and visible)
   canvas  = $('renderCanvas');
   engine  = new BABYLON.Engine(canvas, true, {antialias:true, adaptToDeviceRatio:true});
 
@@ -947,8 +926,8 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     const result=await fp.get();
     visitorId=result.visitorId;
   } catch(e){
-    console.warn('FingerprintJS failed, using fallback'); 
-    visitorId='unknown_'+Math.random().toString(36).slice(2);
+    console.warn('FingerprintJS failed, using fallback');
+    visitorId='fp_'+Date.now()+'_'+Math.random().toString(36).slice(2);
   }
 
   // Create Babylon scene
@@ -959,12 +938,18 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     clearInterval(iv); fill.style.width='100%';
     $('loadMsg').textContent='¡Listo!';
 
-    // Check fingerprint
+    // Check fingerprint against DB
     let blocked=null;
-    try { blocked=await checkByFingerprint(visitorId); } catch(e){}
+    try { blocked=await checkByFingerprint(visitorId); } catch(e){ console.warn('DB check failed',e); }
+
+    // Setup username screen buttons
+    setupUserScreen();
 
     setTimeout(()=>{
-      hideLoading();
+      // Hide loading overlay
+      $('loading').classList.add('out');
+      setTimeout(()=>{ $('loading').style.display='none'; }, 1000);
+
       setTimeout(()=>{
         if(blocked){
           showBlocked(blocked.username, blocked.premio);
@@ -977,7 +962,6 @@ window.addEventListener('DOMContentLoaded', async ()=>{
 
   engine.runRenderLoop(()=>{ if(scene) scene.render(); });
   window.addEventListener('resize',()=>engine.resize());
-
   $('openBtn').addEventListener('click',()=>{ if(state==='idle') startOpen(); });
 });
 </script>
