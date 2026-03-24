@@ -457,14 +457,14 @@ function playSfx(key){
 const SUPABASE_URL = 'https://seegvnuplmkkaznzywur.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZWd2bnVwbG1ra2F6bnp5d3VyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MjMzMjMsImV4cCI6MjA4OTE5OTMyM30.cQoOUof3cDQqnXc84WyjD6gdjEW47LmUOnmLFZVHEKg';
 const TABLE = 'jugadas';
-
+const SOURCE_HTML = 'eros';
 /* ════════════════════════════════════════════════════
    LOCAL STORAGE KEY  (backup para Brave y browsers anti-fingerprint)
    FIX: guardamos la jugada en localStorage al completar.
    Al cargar, chequeamos localStorage ANTES de consultar Supabase.
    Esto bloquea el reintento incluso si el fingerprint cambia entre sesiones.
 ════════════════════════════════════════════════════ */
-const LS_KEY = 'chest_played_v1';
+const LS_KEY = `chest_played_v1_${SOURCE_HTML}`;
 
 function lsGetPlay(){
   try {
@@ -522,31 +522,62 @@ const SHAKE=.80, OPEN=1.20;
    SUPABASE HELPERS
 ════════════════════════════════════════════════════ */
 async function checkByFingerprint(fp){
+  if(!db || !SUPABASE_URL.startsWith('http')) return null;
   try{
-    const {data,error} = await db
-      .from(TABLE).select('username,premio').eq('fingerprint',fp).maybeSingle();
-    if(error) console.warn('FP check error:',error);
+    const { data, error } = await db
+      .from(TABLE)
+      .select('username,premio')
+      .eq('fingerprint', fp)
+      .eq('source_html', SOURCE_HTML)
+      .maybeSingle();
+
+    if(error) console.warn('FP check error', error);
     return data;
-  }catch(e){ console.warn('FP check failed:',e); return null; }
+  }catch(e){
+    console.warn('FP check failed', e);
+    return null;
+  }
 }
+
 async function checkByUsername(name){
+  if(!db || !SUPABASE_URL.startsWith('http')) return null;
   try{
-    const {data,error} = await db
-      .from(TABLE).select('username,premio').eq('username',name.toUpperCase()).maybeSingle();
-    if(error) console.warn('Username check error:',error);
+    const { data, error } = await db
+      .from(TABLE)
+      .select('username,premio')
+      .eq('username', name.toUpperCase())
+      .eq('source_html', SOURCE_HTML)
+      .maybeSingle();
+
+    if(error) console.warn('Username check error', error);
     return data;
-  }catch(e){ console.warn('Username check failed:',e); return null; }
+  }catch(e){
+    console.warn('Username check failed', e);
+    return null;
+  }
 }
+
 async function savePlay(username, fp, premio){
+  if(!db || !SUPABASE_URL.startsWith('http')) return false;
   try{
-    const {error} = await db.from(TABLE).insert([{
-      username: username.toUpperCase(),
-      fingerprint: fp,
-      premio
-    }]);
-    if(error) console.error('Save error:',error);
-    return !error;
-  }catch(e){ console.error('Save failed:',e); return false; }
+    const { error } = await db
+      .from(TABLE)
+      .insert([{
+        username: username.toUpperCase(),
+        fingerprint: fp,
+        premio,
+        source_html: SOURCE_HTML
+      }]);
+
+    if(error){
+      console.error('Save error', error);
+      return false;
+    }
+    return true;
+  }catch(e){
+    console.error('Save failed', e);
+    return false;
+  }
 }
 
 /* ════════════════════════════════════════════════════
@@ -886,32 +917,45 @@ function startOpen(){
 }
 
 async function onDone(){
-  state='reward';
-  const coins=pickPrize();
+  state = 'reward';
+  const coins = pickPrize();
 
   $('savingOverlay').classList.add('show');
-  await savePlay(currentUsername, visitorId, coins);
+  const saved = await savePlay(currentUsername, visitorId, coins);
+
+  if (!saved) {
+    $('savingOverlay').classList.remove('show');
+    alert('No se pudo guardar la jugada. Probá nuevamente.');
+    state = 'idle';
+    $('openBtn').disabled = false;
+    $('hintText').style.opacity = '1';
+    return;
+  }
+
   lsSavePlay(currentUsername, coins);
   $('savingOverlay').classList.remove('show');
 
-  // Reward fanfare — bajar bg para que se escuche bien
   if(SFX.bg && !audioMuted) SFX.bg.volume = 0.10;
   playSfx('reward');
   setTimeout(()=>{ if(SFX.bg && !audioMuted) SFX.bg.volume = 0.30; }, 3500);
 
   burst();
-  coinPS.start(); coinPS.manualEmitCount=180;
-  setTimeout(()=>{ try{coinPS.stop();}catch(e){} }, 300);
+  try{
+    coinPS.start();
+    coinPS.manualEmitCount = 180;
+    setTimeout(()=>{ try{ coinPS.stop(); } catch(e){} }, 300);
+  }catch(e){}
 
   $('rwUsername').textContent = currentUsername.toUpperCase();
   $('coinAmt').textContent = '0';
   $('rwOverlay').classList.add('show');
 
-  const dur=900, t0=performance.now();
+  const dur = 900;
+  const t0 = performance.now();
   (function cnt(now){
-    const t=clp((now-t0)/dur,0,1);
-    $('coinAmt').textContent = fmt(Math.round(eob(t)*coins));
-    if(t<1) requestAnimationFrame(cnt);
+    const t = clp((now - t0)/dur, 0, 1);
+    $('coinAmt').textContent = fmt(Math.round(eob(t) * coins));
+    if(t < 1) requestAnimationFrame(cnt);
   })(performance.now());
 }
 
